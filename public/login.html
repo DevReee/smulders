@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logowanie - Smulders Inventory</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="login-page">
+    <div class="login-background">
+        <div class="shape-left"></div>
+        <div class="shape-right"></div>
+    </div>
+    <div class="login-wrapper">
+        <div class="login-container">
+            <div class="login-header">
+                <div class="logo-container">
+                    <img src="photo/logo.svg" alt="Smulders Logo" class="logo-svg" onerror="this.onerror=null; this.src='photo/logo-fallback.png'; this.classList.add('logo-fallback');">
+                </div>
+                <p>System Inwentaryzacji</p>
+            </div>
+            <form id="loginForm" class="modern-form">
+                <div class="form-group">
+                    <div class="input-icon-wrapper">
+                        <i class="fas fa-user"></i>
+                        <input type="text" name="username" placeholder="Użytkownik" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="input-icon-wrapper">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" name="password" placeholder="Hasło" required>
+                    </div>
+                </div>
+                <button type="submit" class="login-btn">
+                    <span>Zaloguj się</span>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </form>
+            <div class="login-footer">
+                <div class="footer-divider">
+                    <span>Stworzone przez Edjzeck Smulders</span>
+                </div>
+                <p>
+                    <a href="https://github.com/DevReee" target="_blank" rel="noopener noreferrer" class="github-link">
+                        <i class="fab fa-github"></i> Odwiedź mój GitHub
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+    <script src="login.js"></script>
+</body>
+</html>

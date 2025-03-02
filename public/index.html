@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pl" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Inwentaryzacji - Smulders</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">
+            <img src="photo/logo.svg" alt="Smulders Logo" class="nav-logo">
+            <span>System Inwentaryzacji</span>
+        </div>
+        <div class="nav-links">
+            <div class="nav-controls">
+                <div class="nav-group">
+                    <a href="#" class="nav-link active" data-page="devices">
+                        <i class="fas fa-boxes"></i>
+                        Urządzenia
+                    </a>
+                    <a href="#" class="nav-link" data-page="categories">
+                        <i class="fas fa-tags"></i>
+                        Kategorie
+                    </a>
+                </div>
+                <button class="theme-toggle" id="themeToggle" title="Przełącz motyw">
+                    <span class="toggle-track"></span>
+                </button>
+            </div>
+            <div class="nav-divider"></div>
+            <a href="#" class="nav-link" id="logoutBtn">
+                <i class="fas fa-sign-out-alt"></i>
+                Wyloguj
+            </a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="admin-header">
+            <div class="header-title">
+                <h2>Panel Zarządzania</h2>
+                <p>Zarządzaj inwentarzem i śledź zmiany</p>
+            </div>
+            <div id="userInfo">
+                <i class="fas fa-user-circle"></i>
+                <span>Administrator</span>
+            </div>
+        </div>
+
+        <!-- Devices Section -->
+        <div id="devices-section">
+            <div class="admin-tabs">
+                <button class="tab-btn active" data-tab="all">
+                    <i class="fas fa-th-large"></i> Wszystkie
+                </button>
+                <button class="tab-btn" data-tab="active">
+                    <i class="fas fa-check-circle"></i> Aktywne
+                </button>
+                <button class="tab-btn" data-tab="repair">
+                    <i class="fas fa-tools"></i> W naprawie
+                </button>
+                <button class="tab-btn" data-tab="retired">
+                    <i class="fas fa-archive"></i> Wycofane
+                </button>
+            </div>
+
+            <div class="content-header">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Szukaj urządzeń...">
+                </div>
+                <button id="addDeviceBtn" class="action-btn primary">
+                    <i class="fas fa-plus"></i>
+                    Dodaj urządzenie
+                </button>
+            </div>
+
+            <div class="devices-list">
+                <!-- Table content will be loaded dynamically -->
+            </div>
+        </div>
+
+        <!-- Categories Section -->
+        <div id="categories-section" class="hidden">
+            <div class="content-header">
+                <h2>Dostępne Kategorie</h2>
+                <button id="addCategoryBtn" class="action-btn primary">
+                    <i class="fas fa-plus"></i>
+                    Dodaj kategorię
+                </button>
+            </div>
+            <div class="categories-grid">
+                <!-- Categories will be loaded dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Device Form Modal -->
+    <div id="deviceModal" class="modal hidden">
+        <!-- Modal content will be loaded dynamically -->
+    </div>
+
+    <script src="js/deviceService.js" type="module"></script>
+    <script src="js/categories.js" type="module"></script>
+    <script src="app.js" type="module"></script>
+</body>
+</html>
