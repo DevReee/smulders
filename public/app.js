@@ -1,5 +1,6 @@
 import deviceService from './js/deviceService.js';
 import { ThemeManager } from './js/themeManager.js';
+import BarcodeService from './js/barcodeService.js';
 
 class InventoryApp {
     constructor() {
@@ -100,8 +101,8 @@ class InventoryApp {
             const searchTerm = term.toLowerCase();
             return (
                 device.name.toLowerCase().includes(searchTerm) ||
-                device.serialNumber.toLowerCase().includes(searchTerm) ||
-                device.location.toLowerCase().includes(searchTerm)
+                device.serialNumber?.toLowerCase().includes(searchTerm) ||
+                device.location?.toLowerCase().includes(searchTerm)
             );
         });
         this.renderDevices(filtered);
@@ -140,17 +141,26 @@ class InventoryApp {
             
             return `
                 <tr>
-                    <td><strong>${device.inventoryNumber || 'N/A'}</strong></td>
+                    <td class="inventory-number-cell">
+                        <div class="inventory-number-wrapper">
+                            <strong>${device.inventoryNumber || 'N/A'}</strong>
+                            ${device.inventoryNumber ? `
+                                <button class="barcode-btn" data-inventory="${device.inventoryNumber}" title="Generuj naklejkę">
+                                    <i class="fas fa-barcode"></i>
+                                </button>
+                            ` : ''}
+                        </div>
+                    </td>
                     <td>${device.name}</td>
-                    <td>${window.categoryManager?.getCategoryName(device.category) || device.category}</td>
-                    <td>${device.serialNumber}</td>
-                    <td>${device.location}</td>
-                    <td><span class="status-badge ${device.status}">${this.translateStatus(device.status)}</span></td>
+                    <td>${window.categoryManager?.getCategoryName(device.category) || device.category || ''}</td>
+                    <td>${device.serialNumber || ''}</td>
+                    <td>${device.location || ''}</td>
+                    <td><span class="status-badge ${device.status || ''}">${this.translateStatus(device.status)}</span></td>
                     <td>
-                        <button class="action-btn edit" data-id="${device.id}">
+                        <button class="action-btn edit" data-id="${device.id}" title="Edytuj">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="action-btn delete" data-id="${device.id}">
+                        <button class="action-btn delete" data-id="${device.id}" title="Usuń">
                             <i class="fas fa-trash"></i>
                         </button>
                     </td>
@@ -167,7 +177,7 @@ class InventoryApp {
             'repair': 'W naprawie',
             'retired': 'Wycofane'
         };
-        return statusMap[status] || status;
+        return statusMap[status] || status || '';
     }
 
     setActiveTab(targetBtn) {
@@ -191,6 +201,99 @@ class InventoryApp {
                 this.deleteDevice(id);
             });
         });
+
+        // Generowanie naklejki z kodem kreskowym
+        document.querySelectorAll('.barcode-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const inventoryNumber = e.currentTarget.dataset.inventory;
+                this.generateBarcodeLabel(inventoryNumber);
+            });
+        });
+    }
+
+    async generateBarcodeLabel(inventoryNumber) {
+        try {
+            if (!inventoryNumber) {
+                this.showNotification('error', 'Brak numeru inwentaryzacyjnego');
+                return;
+            }
+
+            // Pokaż modal z podglądem kodu kreskowego
+            this.showBarcodeModal(inventoryNumber);
+        } catch (error) {
+            console.error('Error generating barcode:', error);
+            this.showNotification('error', 'Nie udało się wygenerować kodu kreskowego');
+        }
+    }
+
+    async showBarcodeModal(inventoryNumber) {
+        try {
+            const modal = document.createElement('div');
+            modal.className = 'modal barcode-modal';
+            modal.innerHTML = `
+                <div class="modal-content barcode-content">
+                    <h3>Naklejka inwentaryzacyjna</h3>
+                    <div class="barcode-container">
+                        <div class="barcode-loading">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <span>Generowanie kodu...</span>
+                        </div>
+                        <div class="barcode-image" id="barcodeImage"></div>
+                    </div>
+                    <div class="inventory-details">
+                        <p>Numer inwentaryzacyjny: <strong>${inventoryNumber}</strong></p>
+                    </div>
+                    <div class="barcode-actions">
+                        <button class="action-btn primary" id="downloadBarcode">
+                            <i class="fas fa-download"></i> Pobierz
+                        </button>
+                        <button class="action-btn" id="closeBarcode">
+                            <i class="fas fa-times"></i> Zamknij
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+
+            // Generuj kod kreskowy
+            const barcodeDataUrl = await BarcodeService.generateBarcode(inventoryNumber);
+            
+            // Usuń loading i pokaż kod kreskowy
+            const loadingEl = modal.querySelector('.barcode-loading');
+            if (loadingEl) loadingEl.remove();
+            
+            const barcodeImageEl = modal.querySelector('#barcodeImage');
+            if (barcodeImageEl) {
+                const img = document.createElement('img');
+                img.src = barcodeDataUrl;
+                img.alt = `Kod kreskowy ${inventoryNumber}`;
+                img.className = 'barcode-img';
+                barcodeImageEl.appendChild(img);
+            }
+
+            // Obsługa przycisków
+            modal.querySelector('#downloadBarcode').addEventListener('click', () => {
+                this.downloadBarcodeImage(barcodeDataUrl, inventoryNumber);
+            });
+
+            modal.querySelector('#closeBarcode').addEventListener('click', () => {
+                modal.remove();
+            });
+        } catch (error) {
+            console.error('Error showing barcode modal:', error);
+            this.showNotification('error', 'Nie udało się wygenerować podglądu naklejki');
+        }
+    }
+
+    downloadBarcodeImage(dataUrl, inventoryNumber) {
+        const link = document.createElement('a');
+        link.href = dataUrl;
+        link.download = `naklejka-${inventoryNumber}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        this.showNotification('success', 'Naklejka została pobrana');
     }
 
     async editDevice(id) {
@@ -233,7 +336,6 @@ class InventoryApp {
         modal.classList.remove('hidden');
         
         const categoryOptions = window.categoryManager?.generateCategoryOptions(device?.category) || '';
-        
         modal.innerHTML = `
             <div class="modal-content">
                 <h3>${device ? 'Edytuj urządzenie' : 'Dodaj nowe urządzenie'}</h3>

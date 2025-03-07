@@ -1,0 +1,125 @@
+/* Barcode button and modal styles */
+
+/* Inventory number cell with barcode button */
+.inventory-number-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.barcode-btn {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.barcode-btn:hover {
+    background-color: #2980b9;
+    transform: scale(1.05);
+}
+
+.barcode-btn i {
+    font-size: 14px;
+}
+
+/* Barcode modal styles */
+.barcode-modal .modal-content {
+    max-width: 500px;
+    padding: 25px;
+}
+
+.barcode-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.barcode-container {
+    margin: 20px 0;
+    padding: 15px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    min-height: 150px;
+}
+
+.barcode-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #777;
+    gap: 10px;
+}
+
+.barcode-loading i {
+    font-size: 24px;
+    color: #3498db;
+}
+
+.barcode-image {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.barcode-img {
+    max-width: 100%;
+    height: auto;
+}
+
+.inventory-details {
+    margin-bottom: 20px;
+    text-align: center;
+    width: 100%;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+}
+
+.barcode-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.barcode-actions .action-btn {
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.barcode-actions .action-btn.primary {
+    background-color: #3498db;
+    color: white;
+}
+
+.barcode-actions .action-btn.primary:hover {
+    background-color: #2980b9;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .inventory-number-wrapper {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+    
+    .barcode-modal .modal-content {
+        width: 90%;
+        max-width: 400px;
+    }
+}

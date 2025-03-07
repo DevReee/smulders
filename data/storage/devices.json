@@ -8,5 +8,15 @@
     "location": "polska",
     "status": "active",
     "createdAt": "2025-03-07T22:14:16.158Z"
+  },
+  {
+    "id": "1741387317716",
+    "inventoryNumber": "SMU250002",
+    "name": "test",
+    "category": "1740845922125",
+    "serialNumber": "66263",
+    "location": "biuro",
+    "status": "active",
+    "createdAt": "2025-03-07T22:41:57.716Z"
   }
 ]
