@@ -1,12 +1,12 @@
 [
   {
-    "id": "1740912699337",
+    "id": "1741385656158",
     "inventoryNumber": "SMU250001",
-    "name": "sss",
-    "category": "1740847477628",
-    "serialNumber": "ss",
-    "location": "ss",
+    "name": "pc",
+    "category": "1740845922125",
+    "serialNumber": "23",
+    "location": "polska",
     "status": "active",
-    "createdAt": "2025-03-02T10:51:39.337Z"
+    "createdAt": "2025-03-07T22:14:16.158Z"
   }
 ]

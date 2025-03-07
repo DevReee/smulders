@@ -80,15 +80,14 @@ router.put('/:id', authMiddleware, async (req, res) => {
     }
 });
 
-// Delete category
-router.delete('/:id', async (req, res) => {
+// Delete category - Fixed to use authMiddleware and correct fs functions
+router.delete('/:id', authMiddleware, async (req, res) => {
     try {
-        const categoriesFile = path.join(__dirname, '../data/storage/categories.json');
-        const categories = JSON.parse(await fs.readFile(categoriesFile, 'utf8'));
-        
+        const data = await readFile(CATEGORIES_FILE, 'utf8');
+        const categories = JSON.parse(data);
         const newCategories = categories.filter(cat => cat.id !== req.params.id);
         
-        await fs.writeFile(categoriesFile, JSON.stringify(newCategories, null, 2));
+        await writeFile(CATEGORIES_FILE, JSON.stringify(newCategories, null, 2));
         
         res.json({ success: true, message: 'Kategoria została usunięta' });
     } catch (error) {

@@ -5,6 +5,8 @@ const bcrypt = require('bcryptjs');
 // Data storage paths
 const DATA_DIR = path.join(__dirname, 'storage');
 const DEVICES_FILE = path.join(DATA_DIR, 'devices.json');
+const CATEGORIES_FILE = path.join(DATA_DIR, 'categories.json');
+const USERS_FILE = path.join(DATA_DIR, 'users.json');
 
 // Initialize storage
 const initStorage = async () => {
@@ -17,6 +19,26 @@ const initStorage = async () => {
             await fs.access(DEVICES_FILE);
         } catch {
             await fs.writeFile(DEVICES_FILE, JSON.stringify([], null, 2));
+        }
+        
+        // Initialize categories.json if it doesn't exist
+        try {
+            await fs.access(CATEGORIES_FILE);
+        } catch {
+            await fs.writeFile(CATEGORIES_FILE, JSON.stringify([], null, 2));
+        }
+        
+        // Initialize users.json if it doesn't exist
+        try {
+            await fs.access(USERS_FILE);
+        } catch {
+            const defaultUser = [{
+                id: "1",
+                username: "admin",
+                password: "admin",
+                role: "admin"
+            }];
+            await fs.writeFile(USERS_FILE, JSON.stringify(defaultUser, null, 2));
         }
     } catch (error) {
         console.error('Storage initialization error:', error);
@@ -38,23 +60,20 @@ const writeFile = async (filePath, data) => {
     await fs.writeFile(filePath, JSON.stringify(data, null, 2));
 };
 
-// Remove user-related operations since we're using hardcoded admin
+// User operations
 const findUser = async (username) => {
-    if (username === 'admin') {
-        return {
-            id: '1',
-            username: 'admin',
-            role: 'admin',
-            name: 'Administrator'
-        };
+    try {
+        const users = await readFile(USERS_FILE);
+        return users.find(user => user.username === username);
+    } catch (error) {
+        console.error('Error finding user:', error);
+        return null;
     }
-    return null;
 };
 
 // Device operations
 const getAllDevices = async () => {
-    const data = await fs.readFile(DEVICES_FILE, 'utf8');
-    return JSON.parse(data);
+    return await readFile(DEVICES_FILE);
 };
 
 async function getNextInventoryNumber() {
@@ -79,7 +98,7 @@ const createDevice = async (deviceData) => {
     
     const newDevice = {
         id: String(Date.now()),
-        inventoryNumber, // Dodajemy na początku
+        inventoryNumber,
         ...deviceData,
         createdAt: new Date().toISOString()
     };
@@ -144,5 +163,7 @@ module.exports = {
     getAllDevices,
     createDevice,
     updateDevice,
-    deleteDevice
+    deleteDevice,
+    readFile,
+    writeFile
 };
