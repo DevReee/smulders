@@ -7,6 +7,7 @@ const DATA_DIR = path.join(__dirname, 'storage');
 const DEVICES_FILE = path.join(DATA_DIR, 'devices.json');
 const CATEGORIES_FILE = path.join(DATA_DIR, 'categories.json');
 const USERS_FILE = path.join(DATA_DIR, 'users.json');
+const LICENSES_FILE = path.join(DATA_DIR, 'licenses.json');
 
 // Initialize storage
 const initStorage = async () => {
@@ -39,6 +40,13 @@ const initStorage = async () => {
                 role: "admin"
             }];
             await fs.writeFile(USERS_FILE, JSON.stringify(defaultUser, null, 2));
+        }
+        
+        // Initialize licenses.json if it doesn't exist
+        try {
+            await fs.access(LICENSES_FILE);
+        } catch {
+            await fs.writeFile(LICENSES_FILE, JSON.stringify([], null, 2));
         }
     } catch (error) {
         console.error('Storage initialization error:', error);

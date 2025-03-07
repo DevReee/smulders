@@ -1,10 +1,12 @@
 import deviceService from './js/deviceService.js';
 import { ThemeManager } from './js/themeManager.js';
 import BarcodeService from './js/barcodeService.js';
+import licenseService from './js/licenseService.js';
 
 class InventoryApp {
     constructor() {
         this.devices = [];
+        this.licenses = [];
         this.currentFilter = 'all';
         this.init();
     }
@@ -45,6 +47,11 @@ class InventoryApp {
             this.showDeviceModal();
         });
 
+        // Dodawanie licencji
+        document.getElementById('addLicenseBtn')?.addEventListener('click', () => {
+            this.showLicenseModal();
+        });
+
         // Wyszukiwarka
         const searchInput = document.querySelector('.search-box input');
         if (searchInput) {
@@ -67,7 +74,7 @@ class InventoryApp {
 
         document.querySelector(`.nav-link[data-page="${page}"]`).classList.add('active');
         
-        const sections = ['devices-section', 'categories-section'];
+        const sections = ['devices-section', 'categories-section', 'licenses-section'];
         sections.forEach(section => {
             document.getElementById(section)?.classList.add('hidden');
         });
@@ -76,6 +83,8 @@ class InventoryApp {
 
         if (page === 'devices') {
             this.loadDevices();
+        } else if (page === 'licenses') {
+            this.loadLicenses();
         }
     }
 
@@ -85,6 +94,16 @@ class InventoryApp {
             this.filterDevices();
         } catch (error) {
             this.showNotification('error', 'Nie udało się załadować urządzeń');
+        }
+    }
+
+    async loadLicenses() {
+        try {
+            this.licenses = await licenseService.getAllLicenses();
+            this.renderLicenses();
+        } catch (error) {
+            console.error('Error loading licenses:', error);
+            this.showNotification('error', 'Nie udało się załadować licencji');
         }
     }
 
@@ -168,7 +187,47 @@ class InventoryApp {
             `;
         }).join('');
 
-        this.attachActionHandlers();
+        this.attachDeviceActionHandlers();
+    }
+
+    renderLicenses() {
+        const container = document.querySelector('.licenses-list');
+        if (!container) return;
+
+        const tbody = container.querySelector('tbody');
+        if (!tbody) return;
+
+        tbody.innerHTML = this.licenses.length ? this.licenses.map(license => {
+            return `
+                <tr>
+                    <td>${license.softwareName || ''}</td>
+                    <td>${license.licenseKey || ''}</td>
+                    <td>${this.getDeviceName(license.deviceId) || 'Nie przypisano'}</td>
+                    <td>${license.expirationDate ? new Date(license.expirationDate).toLocaleDateString() : 'Bezterminowa'}</td>
+                    <td>${license.description || ''}</td>
+                    <td>
+                        <button class="action-btn edit" data-id="${license.id}" title="Edytuj">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn delete" data-id="${license.id}" title="Usuń">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('') : `
+            <tr>
+                <td colspan="6" class="empty-table">Brak licencji. Dodaj pierwszą licencję klikając przycisk "Dodaj licencję".</td>
+            </tr>
+        `;
+
+        this.attachLicenseActionHandlers();
+    }
+
+    getDeviceName(deviceId) {
+        if (!deviceId) return null;
+        const device = this.devices.find(d => d.id === deviceId);
+        return device ? `${device.name} (${device.inventoryNumber || 'N/A'})` : null;
     }
 
     translateStatus(status) {
@@ -185,17 +244,17 @@ class InventoryApp {
         targetBtn.classList.add('active');
     }
 
-    attachActionHandlers() {
-        // Edycja
-        document.querySelectorAll('.action-btn.edit').forEach(btn => {
+    attachDeviceActionHandlers() {
+        // Edycja urządzenia
+        document.querySelectorAll('.devices-list .action-btn.edit').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const id = e.currentTarget.dataset.id;
                 this.editDevice(id);
             });
         });
 
-        // Usuwanie
-        document.querySelectorAll('.action-btn.delete').forEach(btn => {
+        // Usuwanie urządzenia
+        document.querySelectorAll('.devices-list .action-btn.delete').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const id = e.currentTarget.dataset.id;
                 this.deleteDevice(id);
@@ -207,6 +266,24 @@ class InventoryApp {
             btn.addEventListener('click', (e) => {
                 const inventoryNumber = e.currentTarget.dataset.inventory;
                 this.generateBarcodeLabel(inventoryNumber);
+            });
+        });
+    }
+
+    attachLicenseActionHandlers() {
+        // Edycja licencji
+        document.querySelectorAll('.licenses-list .action-btn.edit').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = e.currentTarget.dataset.id;
+                this.editLicense(id);
+            });
+        });
+
+        // Usuwanie licencji
+        document.querySelectorAll('.licenses-list .action-btn.delete').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = e.currentTarget.dataset.id;
+                this.deleteLicense(id);
             });
         });
     }
@@ -331,6 +408,40 @@ class InventoryApp {
         }
     }
 
+    async editLicense(id) {
+        const license = this.licenses.find(l => l.id === id);
+        if (license) {
+            this.showLicenseModal(license);
+        }
+    }
+
+    async deleteLicense(id) {
+        try {
+            if (!id) {
+                this.showNotification('error', 'Nieprawidłowe ID licencji');
+                return;
+            }
+
+            const confirmed = await this.showConfirmDialog(
+                'Potwierdzenie', 
+                'Czy na pewno chcesz usunąć tę licencję?'
+            );
+            
+            if (!confirmed) return;
+    
+            await licenseService.deleteLicense(id);
+            
+            // Aktualizuj lokalną listę
+            this.licenses = this.licenses.filter(l => l.id !== id);
+            this.renderLicenses();
+            
+            this.showNotification('success', 'Licencja została usunięta');
+        } catch (error) {
+            console.error('Error deleting license:', error);
+            this.showNotification('error', 'Nie udało się usunąć licencji');
+        }
+    }
+
     showDeviceModal(device = null) {
         const modal = document.getElementById('deviceModal');
         modal.classList.remove('hidden');
@@ -408,6 +519,80 @@ class InventoryApp {
         });
     }
 
+    showLicenseModal(license = null) {
+        const modal = document.getElementById('licenseModal');
+        modal.classList.remove('hidden');
+        
+        // Przygotuj opcje dla urządzeń
+        const deviceOptions = this.devices.map(device => 
+            `<option value="${device.id}" ${license?.deviceId === device.id ? 'selected' : ''}>
+                ${device.name} (${device.inventoryNumber || 'N/A'})
+            </option>`
+        ).join('');
+        
+        modal.innerHTML = `
+            <div class="modal-content">
+                <h3>${license ? 'Edytuj licencję' : 'Dodaj nową licencję'}</h3>
+                <form id="licenseForm" ${license ? 'data-id="' + license.id + '"' : ''}>
+                    <div class="form-group">
+                        <label>Nazwa oprogramowania</label>
+                        <input type="text" name="softwareName" required value="${license?.softwareName || ''}">
+                    </div>
+                    <div class="form-group">
+                        <label>Klucz licencyjny</label>
+                        <input type="text" name="licenseKey" required value="${license?.licenseKey || ''}">
+                    </div>
+                    <div class="form-group">
+                        <label>Przypisane urządzenie</label>
+                        <select name="deviceId">
+                            <option value="">-- Brak przypisania --</option>
+                            ${deviceOptions}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Data ważności</label>
+                        <input type="date" name="expirationDate" value="${license?.expirationDate ? license.expirationDate.substring(0, 10) : ''}">
+                        <small>Pozostaw puste dla licencji bezterminowych</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Opis</label>
+                        <textarea name="description" rows="3">${license?.description || ''}</textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="action-btn primary">
+                            ${license ? 'Zapisz zmiany' : 'Dodaj licencję'}
+                        </button>
+                        <button type="button" class="action-btn" onclick="app.closeModal()">
+                            Anuluj
+                        </button>
+                    </div>
+                </form>
+            </div>
+        `;
+
+        const form = document.getElementById('licenseForm');
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const licenseData = Object.fromEntries(formData);
+            const licenseId = e.target.dataset.id;
+
+            try {
+                if (licenseId) {
+                    await licenseService.updateLicense(licenseId, licenseData);
+                    this.showNotification('success', 'Licencja została zaktualizowana');
+                } else {
+                    await licenseService.addLicense(licenseData);
+                    this.showNotification('success', 'Licencja została dodana');
+                }
+                this.closeModal();
+                await this.loadLicenses();
+            } catch (error) {
+                this.showNotification('error', 'Wystąpił błąd podczas zapisywania');
+            }
+        });
+    }
+
     showConfirmDialog(title, message) {
         return new Promise((resolve) => {
             const modal = document.createElement('div');
@@ -438,7 +623,8 @@ class InventoryApp {
     }
 
     closeModal() {
-        document.getElementById('deviceModal').classList.add('hidden');
+        document.getElementById('deviceModal')?.classList.add('hidden');
+        document.getElementById('licenseModal')?.classList.add('hidden');
     }
 
     showNotification(type, message) {

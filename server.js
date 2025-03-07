@@ -24,11 +24,13 @@ initStorage()
 const authRoutes = require('./routes/auth');
 const deviceRoutes = require('./routes/devices');
 const categoryRoutes = require('./routes/categories');
+const licenseRoutes = require('./routes/licenses');
 
 // Use routes
 app.use('/api/auth', authRoutes);
 app.use('/api/devices', deviceRoutes);
 app.use('/api/categories', categoryRoutes);
+app.use('/api/licenses', licenseRoutes);
 
 // Catch-all route for SPA
 app.get('*', (req, res) => {

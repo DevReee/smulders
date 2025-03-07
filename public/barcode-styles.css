@@ -86,8 +86,16 @@
     padding: 10px;
     background-color: #f8f9fa;
     border-radius: 6px;
+    color: #000 !important; /* Always black text */
 }
 
+.inventory-details p {
+    color: #000 !important; /* Ensure text is always black */
+}
+
+.inventory-details strong {
+    color: #000 !important; /* Ensure text is always black */
+}
 .barcode-actions {
     display: flex;
     gap: 10px;
